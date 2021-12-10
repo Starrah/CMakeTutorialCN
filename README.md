@@ -219,7 +219,7 @@ target_include_directories(Tutorial PUBLIC
                            )
 ```
 
-变量`EXTRA_LIBS`手机了之后可以在可执行文件中链接的可选库.变量`EXTRA_INCLUDES`也相应的用于收集可选的头文件.在处理很多可选项时,这是一种经典的处理方式.下一步我们会用新方式来做.
+变量`EXTRA_LIBS`收集了之后可以在可执行文件中链接的可选库.变量`EXTRA_INCLUDES`也相应的用于收集可选的头文件.在处理很多可选项时,这是一种经典的处理方式.下一步我们会用新方式来做.
 
 相应的源代码改动就比较直接了.首先,在`tutorial.cxx`中,如果需要则包含`MathFunctions.h`:
 
@@ -257,17 +257,17 @@ cmake ../Step2 -DUSE_MYMATH=OFF
 
 重新构建然后运行.
 
-那个函数结果更好,sqrt还是mysqrt?
+哪个函数结果更好,sqrt还是mysqrt?
 
 ## Step3: 对库添加使用依赖
 
-使用依赖运行了对于库或者可执行文件的链接和包含项更好的控制.也提供了对CMake内的可及属性的更充分的控制.控制使用依赖的首要命令包括:
+使用依赖能够让我们更好地控制库或者可执行程序使用的链接和包含.也提供了对CMake内的可及属性的更充分的控制.控制使用依赖的首要命令包括:
 + [target_compile_definitions](https://cmake.org/cmake/help/latest/command/target_compile_definitions.html#command:target_compile_definitions)
 + [target_compile_options](https://cmake.org/cmake/help/latest/command/target_compile_options.html#command:target_compile_options)
 + [target_include_directories](https://cmake.org/cmake/help/latest/command/target_include_directories.html#command:target_include_directories)
 + [target_link_libraries](https://cmake.org/cmake/help/latest/command/target_link_libraries.html#command:target_link_libraries)
 
-让我们用现代CMake的方式重构Step2中的使用依赖的部分. 我们首先明确任何链接到MathFunctions的对象都需要包含当前原目录,除了MathFunctions本身.所以这可以作为一个`INTERFACE`使用依赖.
+让我们用现代CMake的方式重构Step2中的使用依赖的部分. 我们首先明确任何链接到MathFunctions的对象都需要包含当前源目录(译者注：指`MathFunctions`目录),除了MathFunctions本身.所以这可以作为一个`INTERFACE`使用依赖.
 
 记住`INTERFACE`指的是那些消费者需要而生产者不需要的东西.在`MathFunctions/CMakeLists.txt`的结尾加入:
 
