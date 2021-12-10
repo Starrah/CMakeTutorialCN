@@ -160,7 +160,7 @@ Tutorial
 
 本篇教程里,我们会把库放在一个叫做`MathFunctions`的子文件夹下.这个目录已经包含了一个头文件`MathFunctions.h`,也包含了一个源文件`mysqrt.cxx`. 源文件中包含一个名为`mysqrt`的函数,提供了编译器中`sqrt`相近功能.
 
-把这一行加入`MathFunctions`文件夹的`CMakeLists.txt`中:
+向`MathFunctions`文件夹中新增下面的单行`CMakeLists.txt`文件:
 
 ```CMake
 add_library(MathFunctions mysqrt.cxx)
