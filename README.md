@@ -374,9 +374,9 @@ do_test(Tutorial 0.0001 "0.0001 is 0.01")
 
 下一个测试使用了`PASS_REGULAR_EXPRESSION`测试属性来验证测试输出包含特定字符串.用于在参数输入数量不对时打印使用信息.
 
-最后,我们有一个叫做`do_test`的函数来运行应用并验证计算平方根的结果对于给定输出是正确的.对于没错`do_test`的唤起,项目中就会被加入一个带有明早,输入和期待结果的测试.
+最后,我们有一个叫做`do_test`的函数来运行应用并验证计算平方根的结果对于给定输出是正确的.对于每次`do_test`的调用,项目中就会被加入一个带有指定的名字,输入和期待结果的测试.
 
-重新构建应用然后进入二进制目录并运行`ctest`可执行文件:`ctest -N`和`ctest -VV`(译者注:注意是两个V).对于多配制生成器(例如Visual Studio),配置类型必须要指定.为了在DEbug模式下运行测试,例如在构建目录下(而非Debug目录下)使用`ctest -C Debug -VV`.或者在IDE中构建`RUN_TESTS`目标.
+重新构建应用然后进入二进制目录并运行`ctest`可执行文件:`ctest -N`和`ctest -VV`(译者注:注意是两个V).对于多配置生成器(例如Visual Studio),配置类型必须通过`-C <mode>`来指定.例如,如果想要在Debug模式下运行测试,则需要在构建目录下(而非Debug目录下)执行`ctest -C Debug -VV`.在同样的目录下,使用`-C Release`则可以以Release模式运行.或者也可以在IDE中构建`RUN_TESTS`目标.
 
 ## Step5: 增加系统自检
 
@@ -447,7 +447,7 @@ target_include_directories(MathFunctions
 
 首先将定义从`TutorialConfig.h`中移除,我们不再需要从`mysqrt.cxx`中包含`TutorialConfig.h`或者在`MathFunctions/CMakeLists.txt`中额外包含了.
 
-接下来我们可以把`HAVE_LOG`和`HAVR_EXP`的检查移动到`MathFunctions/CMakeLists.txt`中,然后把这些纸设定为`PRIVATE`编译定义.
+接下来我们可以把`HAVE_LOG`和`HAVR_EXP`的检查移动到`MathFunctions/CMakeLists.txt`中,然后把这些值设定为`PRIVATE`编译定义.
 
 ```CMake
 include(CheckSymbolExists)
@@ -474,7 +474,7 @@ endif()
 这样调整更新后,重新构建项目,再运行Tutorial并确认结果和此前一致.
 
 ## Step6: 添加自定义命令和生成文件
-假设对于本次教程而言,我们决定我们不再想使用平台的`log`和`exp`函数,并希望生成一些会在`mysqrt`函数里使用到的预计算值表.在本节,我们会建立这个表并作为够贱的异步,然后编译到我们的应用中.
+假设对于本次教程而言,我们决定我们不再想使用平台的`log`和`exp`函数,并希望生成一些会在`mysqrt`函数里使用到的预计算值表.在本节,我们会建立这个表并作为构建的一步,然后编译到我们的应用中.
 
 首先,我们移除`MathFunctions/CMakeLists.txt`中的对`log`和`exp`的检查.然后移除`mysqrt.cxx`中对`HAVE_LOG`和`HAVR_EXP`的检查.同事,我们也可以移除`#include <cmath>`
 
@@ -482,9 +482,9 @@ endif()
 
 浏览这个文件可以发现,表格是C++代码生成的并且输出文件名是通过参数传入的.
 
-下一步是在`MathFunctions/CMakeLists.txt`中天机合适的命令来构建`MakeTable`可执行文件,然后作为构建流程的一部分来运行.需要一些命令来完成这一步.
+下一步是在`MathFunctions/CMakeLists.txt`中添加合适的命令来构建`MakeTable`可执行文件,然后作为构建流程的一部分来运行.需要一些命令来完成这一步.
 
-首先,在`MathFunctions/CMakeLists.txt`的开头,`MateTable`的可执行被作为额外的可执行文件来添加.
+首先,在`MathFunctions/CMakeLists.txt`的开头,添加`MakeTable`为可执行文件目标.
 
 ```CMake
 add_executable(MakeTable MakeTable.cxx)
@@ -546,7 +546,7 @@ double mysqrt(double x)
 运行Tutorial可执行文件然后验证使用了表格.
 
 ## Step7: 构建安装器.
-下一步,我们假定我们想要发布我们的项目这样其他人可以使用我们项目了.我们想在多种平台上发布二进制和原发布.这和我们在第四步里所做的有所不同.第四步里我们安装的是从源代码够贱的二进制.在本例中,我们会构建支持二进制安装和包管理特性的安装包.为此,我们会使用CPack来生成对应平台的安装器.特定地,我们需要在我们顶级的`CMakeLists.txt`底添加几行:
+下一步,我们假定我们想要发布我们的项目,以便其他人可以使用我们的项目.我们想在多种平台上发布二进制和源代码.这和我们在第四步里所做的有所不同.第四步里我们安装的是从源代码构建的二进制.在本例中,我们会构建支持二进制安装和包管理特性的安装包.为此,我们会使用CPack来生成对应平台的安装器.具体而言,我们需要在我们顶级的`CMakeLists.txt`底添加几行:
 
 ```CMake
 include(InstallRequiredSystemLibraries)
@@ -556,17 +556,17 @@ set(CPACK_PACKAGE_VERSION_MINOR "${Tutorial_VERSION_MINOR}")
 include(CPack)
 ```
 
-就这样就可以.我们通过包含[InstallRequiredSystemLibraries](https://cmake.org/cmake/help/latest/module/InstallRequiredSystemLibraries.html#module:InstallRequiredSystemLibraries)来开始.这一魔困会包含任何项目当前平台所需的运行库.下一步我们设定一些CPack变量到我们存储项目许可和版本信息的位置.版本信息早先在本篇教程里设定好了.`license.txt`在这一步被包含在顶级源目录中.
+就这样就可以.我们通过包含[InstallRequiredSystemLibraries](https://cmake.org/cmake/help/latest/module/InstallRequiredSystemLibraries.html#module:InstallRequiredSystemLibraries)来开始.这一模块会包含任何项目所需的当前平台的运行库.下一步我们设定一些CPack变量到我们存储项目许可和版本信息的位置.版本信息早先在本篇教程里设定好了.`license.txt`在这一步被包含在顶级源目录中.
 
-最后,我们包含[CPack module](https://cmake.org/cmake/help/latest/module/CPack.html#module:CPack).CPack模块会使用那这些变量和当前系统的其他变量来配置安装器.
+最后,我们包含[CPack module](https://cmake.org/cmake/help/latest/module/CPack.html#module:CPack).CPack模块会使用这些变量和当前系统的其他变量来配置安装器.
 
-下一步是和正常一样构建项目然后巡行[cpack](https://cmake.org/cmake/help/latest/manual/cpack.1.html#manual:cpack(1))可执行文件.从binary目录下运行以下命令以构建二进制发布:
+下一步是和正常一样构建项目然后运行[cpack](https://cmake.org/cmake/help/latest/manual/cpack.1.html#manual:cpack(1))可执行文件.从binary目录下运行以下命令以构建二进制发布:
 
 ```
 cpack
 ```
 
-为了指定生成器,使用`-G`选项,对于多配制构建,使用`-C`来指定配置,如下:
+为了指定生成器,使用`-G`选项,对于多配置构建,使用`-C`来指定配置,例如:
 
 ```
 cpack -G ZIP -C Debug
@@ -578,12 +578,12 @@ cpack -G ZIP -C Debug
 cpack --config CPackSourceConfig.cmake
 ```
 
-或者运行`make package`或者在IDE中右键`Package`目录然后`Build Project`.
+或者运行`make package`,或者在IDE中右键`Package`目录然后`Build Project`.
 
 运行在二进制文件夹中的安装器,然后运行安装的可执行文件并验证可以运行.
 
 ## Step8: 增加对Dashboard的支持
-添加对测试提交到仪表盘的支持是很简单的.我们在测试支持一步中已经给我们的项目定义了一系测试.现在我们只需要运行这些测试并将他们提交到仪表盘上即可.为了包含仪表盘的支持,我们在顶级`CMakeLists.txt`里包含`CTest`模块.
+添加对测试提交到仪表盘的支持是很简单的.我们在测试支持一步中已经给我们的项目定义了一系列测试.现在我们只需要运行这些测试并将他们提交到仪表盘上即可.为了包含仪表盘的支持,我们在顶级`CMakeLists.txt`里包含`CTest`模块.
 
 将
 
@@ -599,9 +599,9 @@ enable_testing()
 include(CTest)
 ```
 
-CTest模块会自动调用`enable_testing()`,所以我们你就可以从CMake文件里移除这一语句.
+CTest模块会自动调用`enable_testing()`,所以我们就可以从CMake文件里移除这一语句.
 
-我们也需要在顶级目录下(我们制定项目名和提交到面板的目录)建立一个`CTestConfig.cmake`文件.
+我们也需要在顶级目录下(我们指定项目名和提交到面板的目录)建立一个`CTestConfig.cmake`文件.
 
 ```
 set(CTEST_PROJECT_NAME "CMakeTutorial")
@@ -624,7 +624,7 @@ ctest [-VV] -C Debug -D Experimental
 `ctest`可执行文件会构建和测试项目并提交结果到Kitware的公共面板:[https://my.cdash.org/index.php?project=CMakeTutorial](https://my.cdash.org/index.php?project=CMakeTutorial).
 
 ## Step9: 混合静态和共享
-在本节,我们会展示`BUILD_SHARED_LIBS`变量是怎么样用于控制`add_library()`的表现.并且容许控制没有显示类型(`STATIC`, `SHARED` `MODULE`或者`OBJECT`)的库的构建.
+在本节,我们会展示`BUILD_SHARED_LIBS`变量是怎么样用于控制`add_library()`的表现.并且容许控制没有显式类型(`STATIC`, `SHARED` `MODULE`或者`OBJECT`)的库的构建.
 
 我们需要在顶级`CMakeLists.txt`里增加`BUILD_SHARED_LIBS`.我们用`option()`命令来让用户可以选开或者关.
 
@@ -661,9 +661,9 @@ add_executable(Tutorial tutorial.cxx)
 target_link_libraries(Tutorial PUBLIC MathFunctions)
 ```
 
-既然我们已经让MathFunctions总被食用.我们需要更新库的逻辑.因此在`MathFunctions/CMakeLists.txt`里我们需要建立一个SqrtLibrary.这个库会在`USE_MYMATH`启用的条件下构建并安装.现在,因为这一篇教程,我们显式地需要SqrtLibrary以静态库构建.
+既然我们已经让MathFunctions总被使用.我们需要更新库的逻辑.因此在`MathFunctions/CMakeLists.txt`里我们需要建立一个SqrtLibrary.这个库会在`USE_MYMATH`启用的条件下构建并安装.现在,因为这只是一篇教程,我们显式地要求SqrtLibrary构建为静态库就可以了.
 
-记过是`MathFunctions/CMakeLists.txt`应如下:
+结果是`MathFunctions/CMakeLists.txt`应该如下:
 
 ```CMake
 # add the library that runs
@@ -784,7 +784,7 @@ double DECLSPEC sqrt(double x);
 }
 ```
 
-这时,如果你构建任何东西,可能会注意到链接失败因为我们在将一个不包含不依赖于位置的代码的静态库和包含有不依赖于位置代码的库.解决方案是显式地将SqrtLibrary的`POSITION_INDEPENDENT_CODE`目标属性设定为True,不管是什么构建类型.
+这时,如果你构建任何东西,可能会注意到链接失败,因为我们在试图将一个不包含位置无关代码(PIC)（译者注：指生成的代码中无绝对跳转指令，跳转都为相对跳转，详见[维基百科](https://zh.wikipedia.org/wiki/%E5%9C%B0%E5%9D%80%E6%97%A0%E5%85%B3%E4%BB%A3%E7%A0%81)）的静态库（译者注：指`SqrtLibrary`）和另一个包含位置无关代码(PIC)的库（译者注：指`MathFunctions`）组合在一起.解决方案是显式地将SqrtLibrary的`POSITION_INDEPENDENT_CODE`目标属性设定为True,不管是什么构建类型.
 
 ```
   # state that SqrtLibrary need PIC when the default is shared libraries
@@ -803,13 +803,13 @@ double DECLSPEC sqrt(double x);
 
 生成表达式可以在许多目标属性内容中使用,诸如`LINK_LIBRARIES`,`INCLUDE_DIRECTORIES`,`COMPILE_DEFINITIONS`和其他一些属性.生成表达式也可以在使用命令丰富这些属性的时候使用,例如`target_link_libraries()`,`target_include_directories()`,`target_compile_definitions()`和其他命令.
 
-生成表达式可用于启用条件链接,在编译时的条件定义,条件包含目录和其他.这些条件可能基于构建配置,目标属性,平台信息或者其他可查询信息.
+生成表达式可用于启用条件链接,在编译时的条件定义,条件包含目录等等.这些条件可能基于构建配置,目标属性,平台信息或者其他可查询信息.
 
-有一些不同类型的生成表达式包括逻辑,信息的和输出表达式.
+生成表达式有着不同的类型,包括逻辑表达式,信息表达式和输出表达式.
 
-逻辑表达式用于创建条件输出.基本表单时是01表达式,`$<0:...>`结果是一个空字符串,`$<1:...>`结果是`"..."`的内容.也同样是可嵌套的.
+逻辑表达式用于创建条件输出.基本表达式是01表达式,`$<0:...>`结果是一个空字符串,`$<1:...>`结果是`"..."`的内容.它们也同样是可嵌套的.
 
-生成表达式的普遍用法是依据不同条件添加编译器标志,例如语言级别的或者警告.一个好的模式是把这些信息和允许传播这些信息的`INTERFACE`目标关联起来.让我们从构建一个`INTERFACE`目标并指定需要的C++标准级别是`11`而非`CMAKE_CXX_STANDARD`.
+生成表达式的普遍用法是依据不同条件添加编译器标志,例如语言级别的或者警告.一个好的模式是把这些信息和允许传播这些信息的`INTERFACE`目标关联起来.让我们从构建一个`INTERFACE`目标并指定需要的C++标准级别是`11`而非`CMAKE_CXX_STANDARD`开始.
 
 故下述代码:
 
@@ -826,7 +826,7 @@ add_library(tutorial_compiler_flags INTERFACE)
 target_compile_features(tutorial_compiler_flags INTERFACE cxx_std_11)
 ```
 
-下一步我们添加项目所需的预期的编译器警告标志.因为警告标志基于编译器,我们用`COMPILE_LAND_AND_ID`生成器表达式来控制哪些标志来用于给定的语言和一系列编译器id如下:
+下一步我们添加项目所需的预期的编译器警告标志.因为警告标志基于编译器,我们用`COMPILE_LAND_AND_ID`生成器表达式来控制在给定的语言和一系列编译器id下,哪些标志被使用.如下所示:
 
 ```
 set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU>")
@@ -837,16 +837,16 @@ target_compile_options(tutorial_compiler_flags INTERFACE
 )
 ```
 
-我们能发现警告信息被封装在`BUILD_INTERFACE`条件内.这样可以让我们我们安装的项目用户不会继承我们的警告标志.
+我们能发现警告信息被封装在`BUILD_INTERFACE`条件内.这样可以让安装我们项目的用户不会继承我们的警告标志.
 
-**练习**:修改`MathFunctions/CMakeLists.txt`这样所有的目标都有`target_link_libraries()`调用`tutorial_compiler_flags`.
+**练习**:修改`MathFunctions/CMakeLists.txt`,使得所有的目标都有`target_link_libraries()`来调用`tutorial_compiler_flags`.
 
 ## Step11 增加导出配置
-z在第四步中,我们为CMake增加了安装库和头文件的功能.在第七步我们增加了打包这些信息以可以发布给给其他人.
+在第四步中,我们为CMake增加了安装库和头文件的功能.在第七步我们增加了打包这些信息以便可以发布给给其他人的能力.
 
-下一步是增加必要信息这样其他的CMAke项目可以用我们的项目或基于构建目录,本地安装或者打包时使用.
+下一步是增加必要信息使得其他的CMake项目可以使用我们的项目，无论是基于构建目录,本地安装还是作为软件包使用.
 
-第一步是更新我们`install(TARGETS)`命令来不仅仅指定`DESTINATION`也指定`EXPORT`.`EXPORT`关键字生成并安装一个CMake文件,这一文件包含着导入所有安装树里安装命令所列出的所有目标的代码.让我们继续然后通过更新`MathFunctions/CMakeLists.txt`里的`install`命令显示`EXPORT`MathFunctions库:
+第一步是更新我们的[`install(TARGETS)`](https://cmake.org/cmake/help/latest/command/install.html#command:install)命令来不仅仅指定`DESTINATION`也指定`EXPORT`.`EXPORT`关键字生成一个CMake文件,其中含有能够导入安装树中安装命令所列出的所有目标的代码.于是我们可以通过更新`MathFunctions/CMakeLists.txt`里的`install`命令来显式地导出(`EXPORT`)MathFunctions库:
 
 ```CMake
 set(installable_libs MathFunctions tutorial_compiler_flags)
